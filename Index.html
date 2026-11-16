@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Game horor petualangan bertahan hidup di rumah tua. Kelola baterai senter, temukan kunci, dan hindari kegelapan.">
+    <meta name="author" content="Autonomous Product Studio">
+    <meta name="theme-color" content="#09080c">
+    <meta name="color-scheme" content="dark">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Malam di Rumah Tua">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta property="og:type" content="game">
+    <meta property="og:title" content="Malam di Rumah Tua">
+    <meta property="og:description" content="Game horor petualangan bertahan hidup di rumah tua.">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:site_name" content="Studio Game Independen">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Malam di Rumah Tua">
+    <meta name="twitter:description" content="Game horor petualangan bertahan hidup di rumah tua.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2309080c'/%3E%3Cpath d='M16 4L4 12v16h24V12L16 4z' fill='none' stroke='%23d93838' stroke-width='2'/%3E%3Ccircle cx='16' cy='18' r='4' fill='%23d93838'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2309080c'/%3E%3Cpath d='M16 4L4 12v16h24V12L16 4z' fill='none' stroke='%23d93838' stroke-width='2'/%3E%3Ccircle cx='16' cy='18' r='4' fill='%23d93838'/%3E%3C/svg%3E">
+    <title>Malam di Rumah Tua — Petualangan Horor</title>
+    <style>
+        :root {
+            --bg: #09080c;
+            --surface: #14121a;
+            --surface-hover: #1f1b2b;
+            --border: #2c2738;
+            --text: #e6e1f0;
+            --text-dim: #948eab;
+            --accent: #d93838;
+            --accent-glow: rgba(217, 56, 56, 0.3);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'IBM Plex Serif', Georgia, serif;
+            overflow: hidden;
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Noise Overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Screen Manager */
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom)) 20px;
+            background: var(--bg);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Typography & Common */
+        h1, h2, h3 {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+        }
+
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 14px 28px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 320px;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .btn:hover, .btn:focus-visible {
+            background: var(--surface-hover);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+            outline: none;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-danger {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Menu Screen */
+        .menu-container {
+            text-align: center;
+            max-width: 480px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .menu-title {
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .menu-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            margin-bottom: 40px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Game Screen Layout */
+        #game-screen {
+            justify-content: flex-start;
+            gap: 16px;
+        }
+
+        .hud {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .hud-label {
+            color: var(--text-dim);
+            font-size: 0.7rem;
+        }
+
+        .hud-value {
+            font-weight: bold;
+            color: var(--text);
+        }
+
+        .hud-value.alert {
+            color: var(--accent);
+            animation: pulse-alert 1s infinite alternate;
+        }
+
+        @keyframes pulse-alert {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+
+        /* Room Viewport */
+        .room-viewport {
+            width: 100%;
+            max-width: 480px;
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .room-title {
+            font-size: 1.1rem;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .room-desc {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        /* Minimap Grid */
+        .minimap {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .map-cell {
+            aspect-ratio: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+        }
+
+        .map-cell.visited {
+            background: rgba(255,255,255,0.03);
+            border-color: #3d3552;
+        }
+
+        .map-cell.current {
+            border-color: var(--accent);
+            background: var(--accent-glow);
+            color: var(--text);
+            font-weight: bold;
+        }
+
+        .map-cell.exit {
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+
+        /* Action Panel / Controls */
+        .control-panel {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 6px;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .dpad-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .dpad-btn:hover, .dpad-btn:active {
+            background: var(--surface-hover);
+            border-color: var(--accent);
+        }
+
+        .btn-up { grid-column: 2; grid-row: 1; }
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+
+        /* Modals & Overlays */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 8, 12, 0.9);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-title {
+            color: var(--accent);
+            font-size: 1.4rem;
+        }
+
+        .modal-text {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Settings & Info content */
+        .settings-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .toggle-switch {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .toggle-switch.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        /* Rotation Warning */
+        #rotate-warning {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+        }
+
+        @media (orientation: landscape) and (max-height: 500px) {
+            #rotate-warning {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="noise-overlay" aria-hidden="true"></div>
+
+    <!-- Rotation Warning for Landscape Mobile -->
+    <div id="rotate-warning">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent); margin-bottom: 20px;">
+            <rect width="18" height="12" x="3" y="6" rx="2"/><path d="M16 2v4M8 2v4M16 18v4M8 18v4"/>
+        </svg>
+        <h2 style="font-size: 1.2rem; margin-bottom: 10px;">Posisikan Perangkat Tegak</h2>
+        <p style="color: var(--text-dim); font-size: 0.9rem; font-family: 'JetBrains Mono', monospace;">Game ini paling optimal dimainkan dalam orientasi Portrait.</p>
+    </div>
+
+    <!-- 1. MAIN MENU SCREEN -->
+    <div id="menu-screen" class="screen active">
+        <div style="flex:1"></div>
+        <div class="menu-container">
+            <h1 class="menu-title">Rumah Tua</h1>
+            <p class="menu-subtitle">Eksplorasi • Bertahan • Temukan Jalan Keluar</p>
+            <button class="btn" id="btn-start">Mulai Petualangan</button>
+            <button class="btn" id="btn-settings">Pengaturan</button>
+            <button class="btn" id="btn-howto">Cara Bermain</button>
+        </div>
+        <div style="flex:1; display: flex; align-items: flex-end; color: var(--text-dim); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;">
+            v1.0.0 • Autonomous Studio
+        </div>
+    </div>
+
+    <!-- 2. SETTINGS SCREEN -->
+    <div id="settings-screen" class="screen">
+        <div style="width: 100%; max-width: 480px; display: flex; align-items: center; margin-bottom: 20px;">
+            <button class="btn" id="btn-back-settings" style="width: auto; padding: 8px 16px; margin: 0;">← Kembali</button>
+        </div>
+        <div class="menu-container" style="justify-content: flex-start; gap: 16px;">
+            <h2 style="color: var(--accent); margin-bottom: 20px;">Pengaturan</h2>
+            <div class="settings-group">
+                <span>Efek Suara (SFX)</span>
+                <button class="toggle-switch active" id="toggle-sfx">AKTIF</button>
+            </div>
+            <div class="settings-group">
+                <span>Atmosfer Audio</span>
+                <button class="toggle-switch active" id="toggle-audio">AKTIF</button>
+            </div>
+            <div class="settings-group">
+                <span>Tingkat Kesulitan</span>
+                <button class="toggle-switch" id="toggle-diff">NORMAL</button>
+            </div>
+            <div style="margin-top: 30px; width: 100%;">
+                <button class="btn btn-danger" id="btn-reset-data">Reset Data Tersimpan</button>
+            </div>
+        </div>
+        <div style="flex:1"></div>
+    </div>
+
+    <!-- 3. HOW TO PLAY SCREEN -->
+    <div id="howto-screen" class="screen">
+        <div style="width: 100%; max-width: 480px; display: flex; align-items: center; margin-bottom: 20px;">
+            <button class="btn" id="btn-back-howto" style="width: auto; padding: 8px 16px; margin: 0;">← Kembali</button>
+        </div>
+        <div class="menu-container" style="justify-content: flex-start; text-align: left; gap: 14px;">
+            <h2 style="color: var(--accent); margin-bottom: 10px; text-align: center;">Cara Bermain</h2>
+            <p style="font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">
+                <strong style="color: var(--text);">1. Tujuan:</strong> Jelajahi ruangan di rumah tua berukuran 5×5 untuk menemukan <strong style="color: var(--text);">2 Kunci Utama</strong>, lalu temukan Pintu Keluar di pojok terjauh sebelum baterai sentermu habis.
+            </p>
+            <p style="font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">
+                <strong style="color: var(--text);">2. Baterai:</strong> Setiap langkah mengurangi baterai. Cari baterai cadangan di ruangan untuk bertahan hidup.
+            </p>
+            <p style="font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">
+                <strong style="color: var(--text);">3. Bahaya:</strong> Entitas bayangan berkeliaran. Jika kamu masuk ke ruangan monster tanpa persiapan atau baterai habis, permainan berakhir.
+            </p>
+            <p style="font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">
+                <strong style="color: var(--text);">4. Kontrol:</strong> Gunakan D-Pad di layar atau tombol panah / WASD pada keyboard. Tekan <strong style="color: var(--text);">P</strong> untuk Jeda.
+            </p>
+        </div>
+        <div style="flex:1"></div>
+    </div>
+
+    <!-- 4. GAMEPLAY SCREEN -->
+    <div id="game-screen" class="screen">
+        <!-- HUD -->
+        <div class="hud" role="region" aria-label="Status Permainan">
+            <div class="hud-item">
+                <span class="hud-label">BATERAI</span>
+                <span class="hud-value" id="hud-battery">100%</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">KUNCI</span>
+                <span class="hud-value" id="hud-keys">0 / 2</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">LANGKAH</span>
+                <span class="hud-value" id="hud-steps">0</span>
+            </div>
+            <div class="hud-item">
+                <button class="btn" id="btn-pause-ingame" style="width: auto; padding: 6px 12px; margin: 0; font-size: 0.75rem;">JEDA</button>
+            </div>
+        </div>
+
+        <!-- Room Viewport -->
+        <div class="room-viewport" role="main" aria-live="polite">
+            <div class="room-header">
+                <span class="room-title" id="room-name">Foyer Utama</span>
+                <span id="room-coord" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim);">(0, 0)</span>
+            </div>
+            <div class="room-desc" id="room-desc">
+                Udara terasa dingin dan berbau debu tebal. Cahaya senter berkedip lemah menyoroti lantai kayu berderit.
+            </div>
+            <div style="margin-bottom: 15px;" id="room-action-container">
+                <!-- Dynamic Context Button -->
+            </div>
+            <!-- Minimap -->
+            <div class="minimap" id="minimap-grid" aria-label="Peta Ruangan"></div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="dpad">
+                <button class="dpad-btn btn-up" id="btn-up" aria-label="Gerak Atas">▲</button>
+                <button class="dpad-btn btn-left" id="btn-left" aria-label="Gerak Kiri">◀</button>
+                <button class="dpad-btn btn-down" id="btn-down" aria-label="Gerak Bawah">▼</button>
+                <button class="dpad-btn btn-right" id="btn-right" aria-label="Gerak Kanan">▶</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAUSE MODAL -->
+    <div class="modal-overlay" id="modal-pause">
+        <div class="modal-box">
+            <h3 class="modal-title">Permainan Dijeda</h3>
+            <p class="modal-text">Waktu berhenti, namun kesunyian tetap mencekam.</p>
+            <button class="btn" id="btn-resume">Lanjutkan</button>
+            <button class="btn" id="btn-restart">Mulai Ulang</button>
+            <button class="btn btn-danger" id="btn-quit">Keluar ke Menu</button>
+        </div>
+    </div>
+
+    <!-- GAME OVER MODAL -->
+    <div class="modal-overlay" id="modal-gameover">
+        <div class="modal-box">
+            <h3 class="modal-title" style="color: var(--accent);">Kegelapan Menelanmu</h3>
+            <p class="modal-text" id="gameover-reason">Baterai sentermu habis total di tengah ruangan gelap gulita.</p>
+            <button class="btn" id="btn-retry">Coba Lagi</button>
+            <button class="btn" id="btn-go-menu">Menu Utama</button>
+        </div>
+    </div>
+
+    <!-- WIN MODAL -->
+    <div class="modal-overlay" id="modal-win">
+        <div class="modal-box">
+            <h3 class="modal-title" style="color: #4ade80;">Berhasil Keluar!</h3>
+            <p class="modal-text" id="win-stats">Kamu berhasil membuka pintu utama dan melarikan diri dari rumah tua dalam 14 langkah.</p>
+            <button class="btn" id="btn-play-again">Main Lagi</button>
+            <button class="btn" id="btn-win-menu">Menu Utama</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // AUDIO SYSTEM (Web Audio API - No External Files)
+        // ==========================================
+        class SoundSystem {
+            constructor() {
+                this.ctx = null;
+                this.sfxEnabled = true;
+                this.audioEnabled = true;
+                this.droneNode = null;
+                this.droneGain = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playClick() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+
+            playFootstep() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(80, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            playPickup() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.2); // G5
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.35);
+            }
+
+            playJumpscare() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(600, this.ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.4);
+            }
+
+            startAtmosphere() {
+                if (!this.audioEnabled || this.droneNode) return;
+                this.init();
+                try {
+                    this.droneNode = this.ctx.createOscillator();
+                    this.droneGain = this.ctx.createGain();
+                    this.droneNode.type = 'sine';
+                    this.droneNode.frequency.setValueAtTime(55, this.ctx.currentTime); // Low A
+                    this.droneGain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+                    this.droneNode.connect(this.droneGain);
+                    this.droneGain.connect(this.ctx.destination);
+                    this.droneNode.start();
+                } catch(e) {
+                    console.warn("Audio context error:", e);
+                }
+            }
+
+            stopAtmosphere() {
+                if (this.droneNode) {
+                    try {
+                        this.droneNode.stop();
+                        this.droneNode.disconnect();
+                    } catch(e){}
+                    this.droneNode = null;
+                    this.droneGain = null;
+                }
+            }
+        }
+
+        const sound = new SoundSystem();
+
+        // ==========================================
+        // GAME STATE & CONFIGURATION
+        // ==========================================
+        const GRID_SIZE = 5;
+        let gameState = {
+            state: 'menu', // menu | playing | paused | gameover | win
+            playerX: 0,
+            playerY: 0,
+            battery: 100,
+            keysCollected: 0,
+            totalKeys: 2,
+            steps: 0,
+            difficulty: 'normal', // normal | hard
+            map: [], // 5x5 array of room objects
+            visited: []
+        };
+
+        // Room descriptions pool
+        const roomDescriptions = [
+            "Sebuah ruangan tamu berdebu dengan kursi goyang tua yang bergerak sendiri tanpa angin.",
+            "Koridor sempit dengan deretan lukisan potret keluarga yang matanya seolah mengikuti gerakmu.",
+            "Kamar tidur anak yang berserakan dengan mainan kayu berderit di lantai.",
+            "Perpustakaan tua dengan rak-rak buku besar yang hampir roboh menutupi dinding.",
+            "Dapur berbau amis dengan tetesan air keran berirama konstan: tap... tap... tap...",
+            "Ruang kerja gelap berantakan dengan secarik kertas catatan yang belum selesai ditulis.",
+            "Loteng beratap rendah penuh dengan kain penutup putih yang menyerupai sosok berdiri."
+        ];
+
+        // ==========================================
+        // GAME INITIALIZATION & SPAWN VALIDATION
+        // ==========================================
+        function initGame() {
+            gameState.playerX = 0;
+            gameState.playerY = 0;
+            gameState.battery = 100;
+            gameState.keysCollected = 0;
+            gameState.steps = 0;
+            gameState.state = 'playing';
+
+            // [SPAWN VALIDATION] Player spawn di (0, 0). 4 arah walkable terjamin karena grid 5x5.
+            gameState.map = [];
+            gameState.visited = [];
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                gameState.map[y] = [];
+                gameState.visited[y] = [];
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    gameState.visited[y][x] = false;
+                    gameState.map[y][x] = {
+                        name: `Ruangan ${x+1}-${y+1}`,
+                        desc: roomDescriptions[(x + y * 3) % roomDescriptions.length],
+                        hasKey: false,
+                        hasBattery: false,
+                        hasMonster: false,
+                        isExit: false,
+                        searched: false
+                    };
+                }
+            }
+
+            // Set Exit at (4,4) - [SPAWN VALIDATION] Jauh dari player (0,0)
+            gameState.map[4][4].isExit = true;
+            gameState.map[4][4].name = "Pintu Keluar Utama";
+            gameState.map[4][4].desc = "Pintu besi berat dengan gembok ganda yang menghubungkan rumah ini ke dunia luar.";
+
+            // Place Keys at random safe spots (not 0,0 and not 4,4)
+            let keysPlaced = 0;
+            while (keysPlaced < gameState.totalKeys) {
+                const kx = Math.floor(Math.random() * GRID_SIZE);
+                const ky = Math.floor(Math.random() * GRID_SIZE);
+                if ((kx !== 0 || ky !== 0) && (kx !== 4 || ky !== 4) && !gameState.map[ky][kx].hasKey) {
+                    gameState.map[ky][kx].hasKey = true;
+                    keysPlaced++;
+                }
+            }
+
+            // Place Batteries
+            let batPlaced = 0;
+            while (batPlaced < 3) {
+                const bx = Math.floor(Math.random() * GRID_SIZE);
+                const by = Math.floor(Math.random() * GRID_SIZE);
+                if ((bx !== 0 || by !== 0) && !gameState.map[by][bx].hasBattery && !gameState.map[by][bx].hasKey) {
+                    gameState.map[by][bx].hasBattery = true;
+                    batPlaced++;
+                }
+            }
+
+            // Place Monster patrolling at (3,1) or similar
+            gameState.map[2][3].hasMonster = true;
+
+            // Visit start room
+            gameState.visited[0][0] = true;
+
+            sound.startAtmosphere();
+            updateUI();
+        }
+
+        // ==========================================
+        // GAME LOGIC & MOVEMENT
+        // ==========================================
+        function movePlayer(dx, dy) {
+            if (gameState.state !== 'playing') return;
+
+            const newX = gameState.playerX + dx;
+            const newY = gameState.playerY + dy;
+
+            // Boundary check
+            if (newX < 0 || newX >= GRID_SIZE || newY < 0 || newY >= GRID_SIZE) {
+                sound.playClick();
+                return;
+            }
+
+            gameState.playerX = newX;
+            gameState.playerY = newY;
+            gameState.visited[newY][newX] = true;
+            gameState.steps++;
+
+            // Drain battery per step
+            const drainRate = gameState.difficulty === 'hard' ? 8 : 5;
+            gameState.battery -= drainRate;
+
+            sound.playFootstep();
+
+            // Check room contents
+            const currentRoom = gameState.map[newY][newX];
+
+            // Monster check
+            if (currentRoom.hasMonster) {
+                sound.playJumpscare();
+                triggerGameOver("Kamu tertangkap oleh entitas bayangan yang mengintai di ruangan ini.");
+                return;
+            }
+
+            // Battery check
+            if (gameState.battery <= 0) {
+                gameState.battery = 0;
+                sound.playJumpscare();
+                triggerGameOver("Baterai sentermu habis total. Kegelapan mutlak menelanmu.");
+                return;
+            }
+
+            updateUI();
+        }
+
+        function searchCurrentRoom() {
+            const room = gameState.map[gameState.playerY][gameState.playerX];
+            if (room.searched) return;
+
+            room.searched = true;
+            sound.playClick();
+
+            if (room.hasKey) {
+                gameState.keysCollected++;
+                room.hasKey = false;
+                sound.playPickup();
+            } else if (room.hasBattery) {
+                gameState.battery = Math.min(100, gameState.battery + 35);
+                room.hasBattery = false;
+                sound.playPickup();
+            }
+
+            updateUI();
+        }
+
+        function tryExit() {
+            const room = gameState.map[gameState.playerY][gameState.playerX];
+            if (!room.isExit) return;
+
+            if (gameState.keysCollected >= gameState.totalKeys) {
+                gameState.state = 'win';
+                sound.stopAtmosphere();
+                sound.playPickup();
+                document.getElementById('win-stats').textContent = `Kamu berhasil membuka kunci pintu dan melarikan diri dalam ${gameState.steps} langkah dengan sisa baterai ${gameState.battery}%.`;
+                document.getElementById('modal-win').classList.add('active');
+            } else {
+                sound.playClick();
+                alert("Pintu terkunci rapat! Kamu membutuhkan 2 Kunci Utama untuk membukanya.");
+            }
+        }
+
+        // ==========================================
+        // UI RENDERING & UPDATES
+        // ==========================================
+        function updateUI() {
+            // HUD
+            const batEl = document.getElementById('hud-battery');
+            batEl.textContent = `${gameState.battery}%`;
+            if (gameState.battery <= 25) {
+                batEl.classList.add('alert');
+            } else {
+                batEl.classList.remove('alert');
+            }
+
+            document.getElementById('hud-keys').textContent = `${gameState.keysCollected} / ${gameState.totalKeys}`;
+            document.getElementById('hud-steps').textContent = gameState.steps;
+
+            // Room Info
+            const room = gameState.map[gameState.playerY][gameState.playerX];
+            document.getElementById('room-name').textContent = room.isExit ? "Pintu Keluar" : room.name;
+            document.getElementById('room-coord').textContent = `(${gameState.playerX}, ${gameState.playerY})`;
+
+            let descText = room.desc;
+            if (room.searched) {
+                descText += " (Ruangan telah digeledah).";
+            } else {
+                if (room.hasKey) descText += " Sesuatu yang berkilau tampak di sudut ruangan.";
+                else if (room.hasBattery) descText += " Ada baterai cadangan tergeletak di atas meja.";
+                else descText += " Tidak ada apa-apa selain keheningan.";
+            }
+            document.getElementById('room-desc').textContent = descText;
+
+            // Context Action Button
+            const actionContainer = document.getElementById('room-action-container');
+            actionContainer.innerHTML = '';
+
+            if (room.isExit) {
+                const exitBtn = document.createElement('button');
+                exitBtn.className = 'btn';
+                exitBtn.style.borderColor = '#4ade80';
+                exitBtn.style.color = '#4ade80';
+                exitBtn.textContent = 'Buka Pintu & Keluar';
+                exitBtn.onclick = tryExit;
+                actionContainer.appendChild(exitBtn);
+            } else if (!room.searched && (room.hasKey || room.hasBattery)) {
+                const searchBtn = document.createElement('button');
+                searchBtn.className = 'btn';
+                searchBtn.textContent = 'Periksa Ruangan';
+                searchBtn.onclick = searchCurrentRoom;
+                actionContainer.appendChild(searchBtn);
+            }
+
+            // Minimap
+            const minimapGrid = document.getElementById('minimap-grid');
+            minimapGrid.innerHTML = '';
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'map-cell';
+                    if (x === gameState.playerX && y === gameState.playerY) {
+                        cell.classList.add('current');
+                        cell.textContent = 'P';
+                    } else if (gameState.visited[y][x]) {
+                        cell.classList.add('visited');
+                        if (gameState.map[y][x].isExit) {
+                            cell.classList.add('exit');
+                            cell.textContent = 'X';
+                        } else {
+                            cell.textContent = '·';
+                        }
+                    }
+                    minimapGrid.appendChild(cell);
+                }
+            }
+        }
+
+        function triggerGameOver(reason) {
+            gameState.state = 'gameover';
+            sound.stopAtmosphere();
+            document.getElementById('gameover-reason').textContent = reason;
+            document.getElementById('modal-gameover').classList.add('active');
+        }
+
+        // ==========================================
+        // SCREEN NAVIGATION
+        // ==========================================
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // ==========================================
+        // EVENT LISTENERS & INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Main Menu Buttons
+            document.getElementById('btn-start').onclick = () => {
+                sound.playClick();
+                showScreen('game-screen');
+                initGame();
+            };
+
+            document.getElementById('btn-settings').onclick = () => {
+                sound.playClick();
+                showScreen('settings-screen');
+            };
+
+            document.getElementById('btn-howto').onclick = () => {
+                sound.playClick();
+                showScreen('howto-screen');
+            };
+
+            document.getElementById('btn-back-settings').onclick = () => {
+                sound.playClick();
+                showScreen('menu-screen');
+            };
+
+            document.getElementById('btn-back-howto').onclick = () => {
+                sound.playClick();
+                showScreen('menu-screen');
+            };
+
+            // D-Pad Controls
+            document.getElementById('btn-up').onclick = () => movePlayer(0, -1);
+            document.getElementById('btn-left').onclick = () => movePlayer(-1, 0);
+            document.getElementById('btn-down').onclick = () => movePlayer(0, 1);
+            document.getElementById('btn-right').onclick = () => movePlayer(1, 0);
+
+            // In-game Pause
+            document.getElementById('btn-pause-ingame').onclick = () => {
+                if (gameState.state === 'playing') {
+                    gameState.state = 'paused';
+                    document.getElementById('modal-pause').classList.add('active');
+                }
+            };
+
+            document.getElementById('btn-resume').onclick = () => {
+                document.getElementById('modal-pause').classList.remove('active');
+                gameState.state = 'playing';
+            };
+
+            document.getElementById('btn-restart').onclick = () => {
+                document.getElementById('modal-pause').classList.remove('active');
+                initGame();
+            };
+
+            document.getElementById('btn-quit').onclick = () => {
+                document.getElementById('modal-pause').classList.remove('active');
+                sound.stopAtmosphere();
+                showScreen('menu-screen');
+            };
+
+            document.getElementById('btn-retry').onclick = () => {
+                document.getElementById('modal-gameover').classList.remove('active');
+                initGame();
+            };
+
+            document.getElementById('btn-go-menu').onclick = () => {
+                document.getElementById('modal-gameover').classList.remove('active');
+                showScreen('menu-screen');
+            };
+
+            document.getElementById('btn-play-again').onclick = () => {
+                document.getElementById('modal-win').classList.remove('active');
+                initGame();
+            };
+
+            document.getElementById('btn-win-menu').onclick = () => {
+                document.getElementById('modal-win').classList.remove('active');
+                showScreen('menu-screen');
+            };
+
+            // Toggles
+            document.getElementById('toggle-sfx').onclick = function() {
+                sound.sfxEnabled = !sound.sfxEnabled;
+                this.textContent = sound.sfxEnabled ? 'AKTIF' : 'MATI';
+                this.classList.toggle('active', sound.sfxEnabled);
+                sound.playClick();
+            };
+
+            document.getElementById('toggle-audio').onclick = function() {
+                sound.audioEnabled = !sound.audioEnabled;
+                this.textContent = sound.audioEnabled ? 'AKTIF' : 'MATI';
+                this.classList.toggle('active', sound.audioEnabled);
+                if (!sound.audioEnabled) sound.stopAtmosphere();
+                else if (gameState.state === 'playing') sound.startAtmosphere();
+                sound.playClick();
+            };
+
+            document.getElementById('toggle-diff').onclick = function() {
+                gameState.difficulty = gameState.difficulty === 'normal' ? 'hard' : 'normal';
+                this.textContent = gameState.difficulty === 'normal' ? 'NORMAL' : 'SULIT';
+                this.classList.toggle('active', gameState.difficulty === 'hard');
+                sound.playClick();
+            };
+
+            document.getElementById('btn-reset-data').onclick = () => {
+                try {
+                    localStorage.removeItem('horror_game_state');
+                    alert("Data penyimpanan berhasil direset.");
+                } catch(e) {}
+            };
+
+            // Keyboard support
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') movePlayer(0, -1);
+                if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') movePlayer(0, 1);
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') movePlayer(-1, 0);
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') movePlayer(1, 0);
+                if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+                    if (gameState.state === 'playing') {
+                        gameState.state = 'paused';
+                        document.getElementById('modal-pause').classList.add('active');
+                    } else if (gameState.state === 'paused') {
+                        document.getElementById('modal-pause').classList.remove('active');
+                        gameState.state = 'playing';
+                    }
+                }
+            });
+
+            // Visibility Change & Blur Auto-Pause
+            window.addEventListener('blur', () => {
+                if (gameState.state === 'playing') {
+                    gameState.state = 'paused';
+                    document.getElementById('modal-pause').classList.add('active');
+                    sound.stopAtmosphere();
+                }
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && gameState.state === 'playing') {
+                    gameState.state = 'paused';
+                    document.getElementById('modal-pause').classList.add('active');
+                    sound.stopAtmosphere();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
